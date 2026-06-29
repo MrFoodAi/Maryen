@@ -6,7 +6,6 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
-/** Schermata Impostazioni v1: inserimento API key, salvata cifrata nel Vault. */
 class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +15,7 @@ class SettingsActivity : AppCompatActivity() {
         val apiKeyField = findViewById<EditText>(R.id.apiKeyField)
         val saveButton = findViewById<Button>(R.id.saveApiKeyButton)
 
-        val existing = MaryenApp.instance.vault.getString("anthropic_api_key")
+        val existing = MaryenApp.instance.vault.getString("groq_api_key")
         if (!existing.isNullOrBlank()) {
             apiKeyField.setText(existing)
         }
@@ -24,7 +23,7 @@ class SettingsActivity : AppCompatActivity() {
         saveButton.setOnClickListener {
             val key = apiKeyField.text.toString().trim()
             if (key.isNotEmpty()) {
-                MaryenApp.instance.vault.putString("anthropic_api_key", key)
+                MaryenApp.instance.vault.putString("groq_api_key", key)
                 Toast.makeText(this, "API key salvata", Toast.LENGTH_SHORT).show()
                 finish()
             } else {

@@ -14,12 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import com.maryen.app.voice.SpeechInput
 import kotlinx.coroutines.launch
 
-/**
- * Schermata principale v1: lista messaggi + campo testo + pulsante microfono.
- * Niente Compose in v1 per restare sul minimo indispensabile e ridurre
- * le dipendenze Gradle da configurare nella prima build; il layout
- * usa Views classiche (activity_main.xml).
- */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var chatAdapter: ArrayAdapter<String>
@@ -68,7 +62,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkApiKey() {
-        val key = MaryenApp.instance.vault.getString("anthropic_api_key")
+        val key = MaryenApp.instance.vault.getString("groq_api_key")
         if (key.isNullOrBlank()) {
             addMessage("Maryen", "Non ho ancora una API key configurata. Vai in Impostazioni per inserirla, altrimenti non posso rispondere.")
         }
@@ -87,8 +81,12 @@ class MainActivity : AppCompatActivity() {
     private fun handleUserText(text: String) {
         addMessage("Tu", text)
         lifecycleScope.launch {
-            MaryenApp.instance.orchestrator.handle(text).collect { reply ->
-                addMessage("Maryen", reply)
+            try {
+                MaryenApp.instance.orchestrator.handle(text).collect { reply ->
+                    addMessage("Maryen", reply)
+                }
+            } catch (e: Exception) {
+                addMessage("Maryen", "Errore imprevisto: ${e.message ?: "riprova"}.")
             }
         }
     }

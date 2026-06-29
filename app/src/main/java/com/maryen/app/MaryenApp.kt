@@ -11,10 +11,6 @@ import com.maryen.app.skills.news.NewsSkill
 import com.maryen.app.skills.recall.RecallSkill
 import com.maryen.app.voice.TtsEngine
 
-/**
- * Punto unico di assemblaggio (poor man's DI, niente Hilt/Dagger per
- * restare semplice in v1). Tutte le dipendenze condivise vivono qui.
- */
 class MaryenApp : Application() {
 
     lateinit var vault: Vault
@@ -38,7 +34,7 @@ class MaryenApp : Application() {
         consentGate = ConsentGate(this)
         memoryStore = MemoryStore(this)
         ttsEngine = TtsEngine(this)
-        llmEngine = LlmEngine(apiKeyProvider = { vault.getString("anthropic_api_key") })
+        llmEngine = LlmEngine(apiKeyProvider = { vault.getString("groq_api_key") })
 
         val skills = SkillRegistry.v1(
             news = NewsSkill(llmEngine),

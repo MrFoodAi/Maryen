@@ -12,7 +12,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-class LlmEngine(private val apiKeyProvider: () -> String?) {
+class LlmEngine(
+    private val apiKeyProvider: () -> String?,
+    private val modelProvider: () -> String = { "llama-3.1-8b-instant" }
+) {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
@@ -20,16 +23,31 @@ class LlmEngine(private val apiKeyProvider: () -> String?) {
         .build()
 
     private val endpoint = "https://api.groq.com/openai/v1/chat/completions"
-    private val model = "llama-3.1-8b-instant"
 
     private fun requireKey(): String =
         apiKeyProvider() ?: throw IllegalStateException(
             "Nessuna API key configurata. Vai in Impostazioni > Maryen e inseriscila."
         )
 
+    suspend fun testKey(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val body = JSONObject().apply {
+                put("model", modelProvider())
+                put("max_tokens", 5)
+                put("messages", JSONArray().put(
+                    JSONObject().put("role", "user").put("content", "ciao")
+                ))
+            }
+            call(body)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     suspend fun completeJson(system: String, user: String): String = withContext(Dispatchers.IO) {
         val body = JSONObject().apply {
-            put("model", model)
+            put("model", modelProvider())
             put("max_tokens", 512)
             put("messages", JSONArray()
                 .put(JSONObject().put("role", "system").put("content", system))
@@ -43,7 +61,7 @@ class LlmEngine(private val apiKeyProvider: () -> String?) {
     fun stream(system: String, user: String): Flow<String> = flow {
         val text = withContext(Dispatchers.IO) {
             val body = JSONObject().apply {
-                put("model", model)
+                put("model", modelProvider())
                 put("max_tokens", 1024)
                 put("messages", JSONArray()
                     .put(JSONObject().put("role", "system").put("content", system))

@@ -6,6 +6,7 @@ import com.maryen.app.core.memory.MemoryStore
 import com.maryen.app.core.orchestrator.Orchestrator
 import com.maryen.app.core.security.ConsentGate
 import com.maryen.app.core.security.Vault
+import com.maryen.app.core.settings.PreferencesStore
 import com.maryen.app.skills.SkillRegistry
 import com.maryen.app.skills.news.NewsSkill
 import com.maryen.app.skills.recall.RecallSkill
@@ -25,6 +26,10 @@ class MaryenApp : Application() {
         private set
     lateinit var orchestrator: Orchestrator
         private set
+    lateinit var preferencesStore: PreferencesStore
+        private set
+
+    private lateinit var skillRegistry: SkillRegistry
 
     override fun onCreate() {
         super.onCreate()
@@ -34,21 +39,29 @@ class MaryenApp : Application() {
         consentGate = ConsentGate(this)
         memoryStore = MemoryStore(this)
         ttsEngine = TtsEngine(this)
-        llmEngine = LlmEngine(apiKeyProvider = { vault.getString("groq_api_key") })
+        preferencesStore = PreferencesStore(this)
 
-        val skills = SkillRegistry.v1(
+        llmEngine = LlmEngine(
+            apiKeyProvider = { vault.getString("groq_api_key") },
+            modelProvider = { preferencesStore.getModel().apiId }
+        )
+
+        skillRegistry = SkillRegistry.v1(
             news = NewsSkill(llmEngine),
             recall = RecallSkill()
         )
 
         orchestrator = Orchestrator(
             llm = llmEngine,
-            skills = skills,
+            skills = skillRegistry,
             memory = memoryStore,
             tts = ttsEngine,
-            consent = consentGate
+            consent = consentGate,
+            preferences = preferencesStore
         )
     }
+
+    fun orchestratorSkills(): SkillRegistry = skillRegistry
 
     companion object {
         lateinit var instance: MaryenApp

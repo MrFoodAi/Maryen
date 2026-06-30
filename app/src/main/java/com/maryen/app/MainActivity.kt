@@ -97,12 +97,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menu?.add("Impostazioni")
+        menu?.add(0, 1, 0, "Impostazioni")
+        menu?.add(0, 2, 1, "Skill")
+        menu?.add(0, 3, 2, "Crypto")
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        startActivity(Intent(this, SettingsActivity::class.java))
+        val target = when (item.itemId) {
+            1 -> SettingsActivity::class.java
+            2 -> SkillsActivity::class.java
+            3 -> CryptoActivity::class.java
+            else -> return super.onOptionsItemSelected(item)
+        }
+        startActivity(Intent(this, target))
         return true
     }
 }

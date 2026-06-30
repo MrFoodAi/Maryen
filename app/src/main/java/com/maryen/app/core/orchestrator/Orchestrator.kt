@@ -3,6 +3,7 @@ package com.maryen.app.core.orchestrator
 import com.maryen.app.core.llm.LlmEngine
 import com.maryen.app.core.memory.MemoryStore
 import com.maryen.app.core.security.ConsentGate
+import com.maryen.app.core.settings.PreferencesStore
 import com.maryen.app.skills.SkillRegistry
 import com.maryen.app.voice.TtsEngine
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +14,8 @@ class Orchestrator(
     private val skills: SkillRegistry,
     private val memory: MemoryStore,
     private val tts: TtsEngine,
-    private val consent: ConsentGate
+    private val consent: ConsentGate,
+    private val preferences: PreferencesStore
 ) {
 
     fun handle(userText: String, speakOut: Boolean = true): Flow<String> = flow {
@@ -35,7 +37,7 @@ class Orchestrator(
             if (skill == null) {
                 val full = StringBuilder()
                 llm.stream(
-                    system = SYSTEM_CHAT_IT,
+                    system = preferences.buildSystemPrompt(),
                     user = buildChatPrompt(userText, recent, rag)
                 ).collect { tok ->
                     full.append(tok)
@@ -79,12 +81,6 @@ class Orchestrator(
             Se la richiesta riguarda generare immagini, video o altro non elencato,
             usa comunque skill="chat" (Maryen risponderà spiegando il limite).
             Se non sei sicuro o la richiesta è una conversazione generica usa "chat".
-        """.trimIndent()
-
-        private val SYSTEM_CHAT_IT = """
-            Sei Maryen, assistente personale di Enrico, italiana, calda, diretta,
-            senza fronzoli, senza disclaimer inutili. Rispondi in italiano,
-            massimo 4 frasi se la domanda è semplice, più lunga se serve.
         """.trimIndent()
 
         private fun buildIntentPrompt(text: String, recent: List<String>, rag: List<String>): String =

@@ -26,6 +26,14 @@
             android:name=".SettingsActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".SkillsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CryptoActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
